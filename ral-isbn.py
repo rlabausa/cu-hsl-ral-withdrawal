@@ -27,21 +27,22 @@ def main():
     WS2_ISBN = 'AB'
 
     # Load the workbooks
-    wb1 = load_workbook('input/ral_original.xlsx')
-    wb2 = load_workbook('input/ral_reviewed.xlsx')
+    wb1 = load_workbook('input/RAL_print_books_REVIEWED_1.xlsx')
+    wb2 = load_workbook('input/Books_withEbooks_REMOVE_RAL_1.xlsx')
 
     # Target the desired worksheets
     ws1 = wb1['Print Books']
-    ws2 = wb2['Ebook duplicates']
+    ws2 = wb2['EBookDups Remove']
 
     start = time()
 
     for row in ws2.iter_rows(min_row = 2):
         rowNum = str(row[0].row)
-        barcode = row[WS2_RELATED_PRINT_BARCODE - 1].value
-        isbn = find_isbn_from_barcode(barcode, ws1, WS1_BARCODE, WS1_ISBN)
-        ws2[WS2_ISBN + rowNum] = isbn
-
+        barcode = row[WS2_RELATED_PRINT_DISPLAY_CALL_NUMBER - 1].value
+        isbn = find_desired_val_from_search_val(barcode, ws1, WS1_DISPLAY_CALL_NUMBER, WS1_ISBN)
+        if(isbn != ''):
+            print(f'isbn: {isbn}\nCALL NUMBER: {barcode}')
+            ws2[WS2_ISBN + rowNum] = isbn
         # Show progress as the file is processing
         print(rowNum)
 
@@ -49,7 +50,7 @@ def main():
     
      # Save workbook
     current_datetime = datetime.now().strftime('%m-%d-%Y %H_%M_%S')
-    filename = f'output/RAL {current_datetime}.xlsx'
+    filename = f'output/RAL OUTPUT{current_datetime}.xlsx'
 
     wb2.save(filename = filename)
 
