@@ -47,6 +47,13 @@ def find_row_from_title(title_to_find, ws, ws_title_col_index):
             return row
     return None
 
+def find_row_from_search_val(search_val, ws, search_val_col_index):
+    for row in ws.rows:
+        title = row[search_val_col_index - 1].value
+        
+        if(title == search_val):
+            return row
+    return None
    
 def get_xlsx_files(dir_path):
     """Returns the list of .xlsx files as `Path` objects in a directory
