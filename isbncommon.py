@@ -33,7 +33,7 @@ def find_desired_val_from_search_val(search_val, ws, ws_search_val_col_index, ws
                 val = val.strip()
             
             # check if value is what we're looking for
-            if(search_val == val):
+            if(search_val.upper() == val.upper()):
                 desired_val = row[ws_desired_val_col_index - 1].value
                 return desired_val
             
