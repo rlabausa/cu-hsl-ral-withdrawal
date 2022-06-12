@@ -27,13 +27,17 @@ def find_desired_val_from_search_val(search_val, ws, ws_search_val_col_index, ws
                 search_val = str(val)
                 val = str(search_val)
             
-            # remove whitespace for string values
             if(search_val_type == str):
+                # remove whitespace for string values
                 search_val = search_val.strip()
                 val = val.strip()
+
+                # ensure case-insensitivity
+                search_val = search_val.upper()
+                val = val.upper()
             
             # check if value is what we're looking for
-            if(search_val.upper() == val.upper()):
+            if(search_val == val):
                 desired_val = row[ws_desired_val_col_index - 1].value
                 return desired_val
             
