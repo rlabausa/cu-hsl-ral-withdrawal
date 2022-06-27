@@ -22,12 +22,12 @@ def find_desired_val_from_search_val(search_val, ws, ws_search_val_col_index, ws
             search_val_type = type(val)
             val_type = type(val)
 
-            # cast to string if both values are not of the same type
-            if(search_val_type != val_type):
-                search_val = str(val)
-                val = str(search_val)
+            # cast to string
+            if(search_val_type != str or val_type != str):
+                search_val = str(search_val)
+                val = str(val)
             
-            if(search_val_type == str):
+            if(search_val_type == str and val_type == str):
                 # remove whitespace for string values
                 search_val = search_val.strip()
                 val = val.strip()
@@ -40,7 +40,6 @@ def find_desired_val_from_search_val(search_val, ws, ws_search_val_col_index, ws
             if(search_val == val):
                 desired_val = row[ws_desired_val_col_index - 1].value
                 return desired_val
-            
     return None
 
 def find_row_from_title(title_to_find, ws, ws_title_col_index):
@@ -52,12 +51,37 @@ def find_row_from_title(title_to_find, ws, ws_title_col_index):
     return None
 
 def find_row_from_search_val(search_val, ws, search_val_col_index):
-    for row in ws.rows:
-        title = row[search_val_col_index - 1].value
+    for row in ws.iter_rows(min_row = 2):
+        val = row[search_val_col_index - 1].value
         
-        if(title == search_val):
-            return row
+        # stop searching if search val is empty
+        if(search_val is None or search_val == ''):
+            return None
+        
+        if(search_val is not None and val is not None):
+            search_val_type = type(val)
+            val_type = type(val)
+
+            # cast to string
+            if(search_val_type != str or val_type != str):
+                search_val = str(search_val)
+                val = str(val)
+            
+            if(search_val_type == str):
+                # remove whitespace for string values
+                search_val = search_val.strip()
+                val = val.strip()
+
+                # ensure case-insensitivity
+                search_val = search_val.upper()
+                val = val.upper()
+            
+            # check if value is what we're looking for
+            if(search_val == val):
+                return row
     return None
+
+    
    
 def get_xlsx_files(dir_path):
     """Returns the list of .xlsx files as `Path` objects in a directory
