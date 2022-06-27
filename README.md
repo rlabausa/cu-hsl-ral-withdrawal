@@ -30,14 +30,6 @@ The the following folders and files set up prior to execution:
 │   ├── pull_withdraw_lists
 │   └── pull_transfer_lists
 │
-├── build
-│   ├── ral-pull-transfer.pkg
-│   ├── ...
-│   └── ral-pull-transfer.exe.manifest
-│
-├── dist
-│   └── ral-pull-transfer.exe
-│
 └── ral-pull-transfer.py
 ```
 
