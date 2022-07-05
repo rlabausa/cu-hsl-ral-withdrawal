@@ -64,7 +64,8 @@ python <filename.py>
 ```  
 
 ## Running Pre-Compiled Executables
-For other users who wish to run the code for creating the pull/transfer lists (**ral-pull-transfer.exe**):  
+For other users who wish to run the code for creating the pull/transfer lists (**ral-pull-transfer.exe**), ***ALL*** directories (and executables including the **build** and **dist** folders) must be set according to the structure above before running through the following steps:
+
 1.  Open Windows Command Prompt
     - Press the Windows key and search for "Command Prompt"
     - Alternatively, you may also open File Explorer to navigate to the folder where you have the repository saved, click the far right of the top filepath breadcrumb menu, type in `cmd` and press `Enter` on your keyboard
