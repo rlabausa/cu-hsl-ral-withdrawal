@@ -23,9 +23,8 @@ def find_desired_val_from_search_val(search_val, ws, ws_search_val_col_index, ws
             val_type = type(val)
 
             # cast to string
-            if(search_val_type != str or val_type != str):
-                search_val = str(search_val)
-                val = str(val)
+            search_val = str(search_val)
+            val = str(val)
             
             if(search_val_type == str and val_type == str):
                 # remove whitespace for string values
@@ -63,18 +62,16 @@ def find_row_from_search_val(search_val, ws, search_val_col_index):
             val_type = type(val)
 
             # cast to string
-            if(search_val_type != str or val_type != str):
-                search_val = str(search_val)
-                val = str(val)
+            search_val = str(search_val)
+            val = str(val)
             
-            if(search_val_type == str):
-                # remove whitespace for string values
-                search_val = search_val.strip()
-                val = val.strip()
+            # remove whitespace for string values
+            search_val = search_val.strip()
+            val = val.strip()
 
-                # ensure case-insensitivity
-                search_val = search_val.upper()
-                val = val.upper()
+            # ensure case-insensitivity
+            search_val = search_val.upper()
+            val = val.upper()
             
             # check if value is what we're looking for
             if(search_val == val):
