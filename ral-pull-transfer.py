@@ -152,7 +152,7 @@ def main():
             os.getcwd(), "output", "pull_transfer_lists", "pull_transfer.xlsx"
         )
     )
-    pull_transfer_ws.close()
+    pull_transfer_wb.close()
 
 
 def log_not_found():
