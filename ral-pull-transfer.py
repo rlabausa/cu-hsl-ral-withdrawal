@@ -11,11 +11,6 @@ from openpyxl.utils.cell import column_index_from_string, get_column_letter
 
 from isbncommon import *
 
-# CALLNUMBER_COL_FACULTY = None
-# BARCODE_COL_FACULTY = None
-# ISBN_COL_FACULTY = None
-# TRANSFERNAME_COL_FACULTY = None
-
 # CALLNUMBER_COL_TRANSFER = column_index_from_string("A")
 # TITLE_COL_TRANSFER = column_index_from_string("B")
 # ISBN_COL_TRANSFER = column_index_from_string("C")
@@ -35,6 +30,11 @@ faculty_keep_ws = faculty_keep_wb.worksheets[0]
 
 
 def main():
+    CALLNUMBER_COL_FACULTY = None
+    BARCODE_COL_FACULTY = None
+    ISBN_COL_FACULTY = None
+    TRANSFERNAME_COL_FACULTY = None
+    KEEP_IN_COLLECTION_FACULTY = None
 
     # master list of all faculty requests found in the withdrawal lists that will be transfered to their offices
     pull_transfer_wb = openpyxl.Workbook()
@@ -42,7 +42,15 @@ def main():
 
     # set up header row into "pull & transfer" master list
     pull_transfer_ws.append(
-        ["Call Number", "Title", "ISBN", "Barcode", "Worldcat OCLC Number", "Faculty"]
+        [
+            "Keep in Collection? (Yes/No)",
+            "Display Call Number",
+            "Title",
+            "ISBN",
+            "Barcode",
+            "Worldcat OCLC Number",
+            "Faculty",
+        ]
     )
 
     # get the columns
@@ -55,6 +63,12 @@ def main():
                     TRANSFERNAME_COL_FACULTY = cell.column
                 elif col_header == "barcode":
                     BARCODE_COL_FACULTY = cell.column
+                elif (
+                    col_header == "keep in collection? (yes/no)"
+                    or col_header == "keep in collection?"
+                    or col_header == "keep in collection"
+                ):
+                    KEEP_IN_COLLECTION_FACULTY = cell.column
 
     # stop execution if required columns are not present
     if TRANSFERNAME_COL_FACULTY is None or TRANSFERNAME_COL_FACULTY == "":
@@ -62,6 +76,9 @@ def main():
         return
     elif BARCODE_COL_FACULTY is None or BARCODE_COL_FACULTY == "":
         print("Error: Keep masterlist is missing Barcode column.")
+        return
+    elif KEEP_IN_COLLECTION_FACULTY is None or KEEP_IN_COLLECTION_FACULTY == "":
+        print("Error: Keep masterlist is missing Keep in Collection? column.")
         return
 
     # iterate through all categorized withdrawal files to create final "pull & withdraw" lists
@@ -94,7 +111,6 @@ def main():
                 col_header = cell.value
                 if col_header is not None:
                     col_header = col_header.lower()
-
                     if col_header == "display call number":
                         CALLNUMBER_COL_LIBGUIDE = cell.column
                     elif col_header == "title":
@@ -113,26 +129,33 @@ def main():
         # find the barcode in the faculty list
         for row in lib_guide_ws.iter_rows(min_row=2):
             barcode = row[BARCODE_COL_LIBGUIDE - 1].value
-            result = find_desired_val_from_search_val(
-                barcode, faculty_keep_ws, BARCODE_COL_FACULTY, TRANSFERNAME_COL_FACULTY
+            result = find_row_from_search_val(
+                barcode, faculty_keep_ws, BARCODE_COL_FACULTY
             )
 
             # faculty has requested book, so add it to valid "pull & transfer" list
             if result is not None:
                 print(f"requester: {result} file: {f.name} barcode: {barcode}")
 
-                # format specifically for the pull/transfer file
-                row_vals = [
-                    row[CALLNUMBER_COL_LIBGUIDE - 1].value,
-                    row[TITLE_COL_LIBGUIDE - 1].value,
-                    row[ISBN_COL_LIBGUIDE - 1].value,
-                    row[BARCODE_COL_LIBGUIDE - 1].value,
-                    row[WORLDCAT_COL_LIBGUIDE - 1].value,
-                    result,
-                ]
+                should_keep_in_collection = result[KEEP_IN_COLLECTION_FACULTY - 1].value
 
-                # add row values to the "pull & transfer" spreadsheet
-                pull_transfer_ws.append(row_vals)
+                if (
+                    should_keep_in_collection is None
+                    or (should_keep_in_collection is not None and should_keep_in_collection.lower() == "no")
+                ):
+                    # format specifically for the pull/transfer file
+                    row_vals = [
+                        should_keep_in_collection,
+                        row[CALLNUMBER_COL_LIBGUIDE - 1].value,
+                        row[TITLE_COL_LIBGUIDE - 1].value,
+                        row[ISBN_COL_LIBGUIDE - 1].value,
+                        row[BARCODE_COL_LIBGUIDE - 1].value,
+                        row[WORLDCAT_COL_LIBGUIDE - 1].value,
+                        result[BARCODE_COL_FACULTY - 1].value,
+                    ]
+
+                    # add row values to the "pull & transfer" spreadsheet
+                    pull_transfer_ws.append(row_vals)
 
             # faculty has not requested book (OR faculty did not format request properly), so add it to "pull & withdraw" list
             else:
@@ -207,28 +230,27 @@ def log_not_found():
             row_vals = [cell.value for cell in row]
             not_found_log_ws.append(row_vals)
 
-    current_datetime = datetime.now().strftime('%m-%d-%Y %H_%M_%S')
+    current_datetime = datetime.now().strftime("%m-%d-%Y %H_%M_%S")
     not_found_log_wb.save(
-        filename=os.path.join("output", "log_lists", f"not_found_log {current_datetime}.xlsx")
+        filename=os.path.join(
+            "output", "log_lists", f"not_found_log {current_datetime}.xlsx"
+        )
     )
     not_found_log_wb.close()
     pull_transfer_wb.close()
-    
 
 
 if __name__ == "__main__":
     start = time()
     if len(sys.argv) > 1:
-        if(sys.argv[1] == '--include-log' or sys.argv[1] == '-l'):
+        if sys.argv[1] == "--include-log" or sys.argv[1] == "-l":
             main()
             log_not_found()
-        elif(sys.argv[1] == '--log-only' or sys.argv[1] == '-lo'):
+        elif sys.argv[1] == "--log-only" or sys.argv[1] == "-lo":
             log_not_found()
         else:
-            print('ERROR: Command not recognized.')
+            print("ERROR: Command not recognized.")
     else:
         main()
     end = time()
-    print(f'[Processing time: {end - start} sec]')
-
-
+    print(f"[Processing time: {end - start} sec]")
