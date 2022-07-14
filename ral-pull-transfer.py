@@ -11,17 +11,8 @@ from openpyxl.utils.cell import column_index_from_string, get_column_letter
 
 from isbncommon import *
 
-# CALLNUMBER_COL_TRANSFER = column_index_from_string("A")
-# TITLE_COL_TRANSFER = column_index_from_string("B")
-# ISBN_COL_TRANSFER = column_index_from_string("C")
-# BARCODE_COL_TRANSFER = column_index_from_string("D")
-# WORLDCAT_COL_TRANSFER = column_index_from_string("E")
-# FACULTY_COL_TRANSFER = column_index_from_string("F")
-
 lib_guide_dir = Path(os.getcwd(), "input", "lib_guide_title_lists")
-faculty_keep_dir = Path(
-    os.getcwd(), "input", "faculty_keep_lists", "faculty_keep_masterlist.xlsx"
-)
+faculty_keep_dir = Path(os.getcwd(), "input", "faculty_keep_lists", "faculty_keep_masterlist.xlsx")
 pull_withdraw_list_dir = Path(os.getcwd(), "output", "pull_withdraw_lists")
 
 # master list of all faculty requests compiled via email
@@ -58,12 +49,13 @@ def main():
         for cell in row:
             col_header = cell.value
             if col_header is not None:
-                col_header = col_header.lower()
+                col_header = col_header.lower().strip()
                 if col_header == "faculty":
                     TRANSFERNAME_COL_FACULTY = cell.column
                 elif col_header == "barcode":
                     BARCODE_COL_FACULTY = cell.column
                 elif (
+                    col_header == "keep in collection (Yes/No)" or
                     col_header == "keep in collection? (yes/no)"
                     or col_header == "keep in collection?"
                     or col_header == "keep in collection"
@@ -110,7 +102,7 @@ def main():
             for cell in row:
                 col_header = cell.value
                 if col_header is not None:
-                    col_header = col_header.lower()
+                    col_header = col_header.lower().strip()
                     if col_header == "display call number":
                         CALLNUMBER_COL_LIBGUIDE = cell.column
                     elif col_header == "title":
@@ -135,13 +127,13 @@ def main():
 
             # faculty has requested book, so add it to valid "pull & transfer" list
             if result is not None:
-                print(f"requester: {result} file: {f.name} barcode: {barcode}")
+                print(f"[FOUND] requester: {result} file: {f.name} barcode: {barcode}")
 
                 should_keep_in_collection = result[KEEP_IN_COLLECTION_FACULTY - 1].value
 
                 if (
                     should_keep_in_collection is None
-                    or (should_keep_in_collection is not None and should_keep_in_collection.lower() == "no")
+                    or (should_keep_in_collection is not None and should_keep_in_collection.lower().strip() == "no")
                 ):
                     # format specifically for the pull/transfer file
                     row_vals = [
@@ -181,7 +173,7 @@ def main():
 def log_not_found():
     BARCODE_COL_FACULTY = None
     TRANSFERNAME_COL_FACULTY = None
-
+    KEEP_IN_COLLECTION_FACULTY = None
     BARCODE_COL_TRANSFER = None
 
     pull_transfer_file = Path("output", "pull_transfer_lists", "pull_transfer.xlsx")
@@ -201,11 +193,18 @@ def log_not_found():
         for cell in row:
             col_header = cell.value
             if col_header is not None:
-                col_header = col_header.lower()
+                col_header = col_header.lower().strip()
                 if col_header == "faculty":
                     TRANSFERNAME_COL_FACULTY = cell.column
                 elif col_header == "barcode":
                     BARCODE_COL_FACULTY = cell.column
+                elif (
+                col_header == "keep in collection (yes/no)" or 
+                col_header == "keep in collection? (yes/no)" or 
+                col_header == "keep in collection?" or
+                col_header == "keep in collection"
+                ):
+                    KEEP_IN_COLLECTION_FACULTY = cell.column
 
     for row in pull_transfer_ws.iter_rows(max_row=1):
         for cell in row:
@@ -216,19 +215,25 @@ def log_not_found():
                     BARCODE_COL_TRANSFER = cell.column
 
     for row in faculty_keep_ws.iter_rows(min_row=2):
-        barcode = row[BARCODE_COL_FACULTY - 1].value
-        result = find_desired_val_from_search_val(
-            barcode, pull_transfer_ws, BARCODE_COL_TRANSFER, BARCODE_COL_TRANSFER
-        )
 
-        if result is None:
-            print(
-                row[0].row,
-                row[BARCODE_COL_FACULTY - 1].value,
-                row[TRANSFERNAME_COL_FACULTY - 1].value,
+        # we can only search if it is supposed to be transferred to their office
+        should_keep_in_collection = row[KEEP_IN_COLLECTION_FACULTY - 1].value
+
+        if(should_keep_in_collection is None or should_keep_in_collection.lower().strip() == "no"):
+            barcode = row[BARCODE_COL_FACULTY - 1].value
+            result = find_desired_val_from_search_val(
+                barcode, pull_transfer_ws, BARCODE_COL_TRANSFER, BARCODE_COL_TRANSFER
             )
-            row_vals = [cell.value for cell in row]
-            not_found_log_ws.append(row_vals)
+
+            if result is None:
+                print(
+                    "[NOT FOUND]",
+                    row[0].row,
+                    row[BARCODE_COL_FACULTY - 1].value,
+                    row[TRANSFERNAME_COL_FACULTY - 1].value
+                )
+                row_vals = [cell.value for cell in row]
+                not_found_log_ws.append(row_vals)
 
     current_datetime = datetime.now().strftime("%m-%d-%Y %H_%M_%S")
     not_found_log_wb.save(
