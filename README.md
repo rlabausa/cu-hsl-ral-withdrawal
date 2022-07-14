@@ -63,6 +63,11 @@ pip install -r requirements.txt
 python <filename.py>
 ```  
 
+If you wish to modify the code and use PyInstaller to compile an executable for use in the `dist` folder, run the following command:
+```Bash
+pyinstaller --onefile ral-pull-transfer.py
+```
+
 ## Running Pre-Compiled Executables
 For other users who wish to run the code for creating the pull/transfer lists (**ral-pull-transfer.exe**), ***ALL*** directories (and executables including the **build** and **dist** folders) must be set according to the structure above before running through the following steps:
 
