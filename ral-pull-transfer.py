@@ -127,7 +127,7 @@ def main():
 
             # faculty has requested book, so add it to valid "pull & transfer" list
             if result is not None:
-                print(f"[FOUND] requester: {result[BARCODE_COL_FACULTY - 1].value} file: {f.name} barcode: {barcode}")
+                print(f"[FOUND] requester: {result[TRANSFERNAME_COL_FACULTY - 1].value} file: {f.name} barcode: {barcode}")
 
                 should_keep_in_collection = result[KEEP_IN_COLLECTION_FACULTY - 1].value
 
