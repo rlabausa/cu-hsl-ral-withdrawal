@@ -175,6 +175,7 @@ def log_not_found():
     TRANSFERNAME_COL_FACULTY = None
     KEEP_IN_COLLECTION_FACULTY = None
     BARCODE_COL_TRANSFER = None
+    TRANSFERNAME_COL_TRANSFER = None
 
     pull_transfer_file = Path("output", "pull_transfer_lists", "pull_transfer.xlsx")
     pull_transfer_wb = load_workbook(pull_transfer_file)
@@ -210,9 +211,11 @@ def log_not_found():
         for cell in row:
             col_header = cell.value
             if col_header is not None:
-                col_header = col_header.lower()
+                col_header = col_header.lower().strip()
                 if col_header == "barcode":
                     BARCODE_COL_TRANSFER = cell.column
+                elif col_header == "faculty":
+                    TRANSFERNAME_COL_TRANSFER = cell.column
 
     for row in faculty_keep_ws.iter_rows(min_row=2):
 
@@ -222,7 +225,7 @@ def log_not_found():
         if(should_keep_in_collection is None or should_keep_in_collection.lower().strip() == "no"):
             barcode = row[BARCODE_COL_FACULTY - 1].value
             result = find_desired_val_from_search_val(
-                barcode, pull_transfer_ws, BARCODE_COL_TRANSFER, BARCODE_COL_TRANSFER
+                barcode, pull_transfer_ws, BARCODE_COL_TRANSFER, TRANSFERNAME_COL_TRANSFER
             )
 
             if result is None:
