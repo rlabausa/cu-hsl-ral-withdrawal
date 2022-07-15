@@ -143,7 +143,7 @@ def main():
                         row[ISBN_COL_LIBGUIDE - 1].value,
                         row[BARCODE_COL_LIBGUIDE - 1].value,
                         row[WORLDCAT_COL_LIBGUIDE - 1].value,
-                        result[BARCODE_COL_FACULTY - 1].value,
+                        result[TRANSFERNAME_COL_FACULTY - 1].value,
                     ]
 
                     # add row values to the "pull & transfer" spreadsheet
